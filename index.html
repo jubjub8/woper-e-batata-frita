@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Servo Motores</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: center;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    input[type=range] {
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Painel de Controle Arduino</h1>
+  <button onclick="conectarSerial()">Conectar Arduino</button>
+
+  <div class="card">
+    <h3>Servo 1 (Pino 9)</h3>
+    <input type="range" id="servo1" min="0" max="180" value="90" oninput="enviarDados(1, this.value)">
+    <p>Ângulo: <span id="val1">90</span>°</p>
+  </div>
+
+  <div class="card">
+    <h3>Servo 2 (Pino 10)</h3>
+    <input type="range" id="servo2" min="0" max="180" value="90" oninput="enviarDados(2, this.value)">
+    <p>Ângulo: <span id="val2">90</span>°</p>
+  </div>
+
+  <script>
+    let writer;
+
+    async function conectarSerial() {
+      try {
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(port.writable);
+        writer = textEncoder.writable.getWriter();
+        alert("Arduino conectado com sucesso!");
+      } catch (err) {
+        alert("Erro ao conectar à porta serial: " + err);
+      }
+    }
+
+    async function enviarDados(servo, angulo) {
+      document.getElementById(`val${servo}`).innerText = angulo;
+      if (writer) {
+        await writer.write(`${servo}:${angulo}\n`);
+      }
+    }
+  </script>
+</body>
+</html>
